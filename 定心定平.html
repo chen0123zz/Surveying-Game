@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>全站儀特訓 V54.0 (野帳實戰版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #0f172a; color: #e2e8f0; touch-action: manipulation; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        /* 導航列 */
+        .nav-bar { flex: 0 0 auto; display: flex; background: #1e293b; border-bottom: 1px solid #334155; z-index: 50; }
+        .nav-btn { flex: 1; padding: 12px; text-align: center; color: #64748b; border-bottom: 3px solid transparent; transition: 0.2s; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .nav-btn.active { color: #22c55e; border-bottom-color: #22c55e; background: rgba(34, 197, 94, 0.1); }
+
+        /* 主內容區 */
+        .main-content { flex: 1 1 auto; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; align-items: center; padding-bottom: 80px; }
+
+        /* --- SOP (雙欄) --- */
+        .sop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 600px; }
+        .sop-slot { background: #1e293b; border: 2px dashed #475569; padding: 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; min-height: 50px; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .sop-slot.filled { border-style: solid; border-color: #22c55e; background: #14532d; justify-content: flex-start; text-align: left; padding-left: 10px; }
+        .sop-option { background: #334155; padding: 12px; margin: 6px 0; border-radius: 8px; cursor: pointer; border: 1px solid #475569; width: 100%; text-align: left; }
+        .sop-option.selected { background: #0ea5e9; color: white; border-color: #fff; transform: translateX(5px); }
+        .sop-title { font-weight: bold; display: block; font-size: 14px; margin-bottom: 2px; color: #facc15; }
+
+        /* --- Sim 整置 --- */
+        .sim-container { width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center; }
+        .sim-canvas-wrap { width: 300px; height: 300px; margin-bottom: 20px; position: relative; flex-shrink: 0; background: #000; border-radius: 50%; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+        canvas { display: block; width: 100%; height: 100%; border-radius: 50%; }
+        .sim-controls-box { width: 100%; background: #1e293b; padding: 15px; border-radius: 12px; border: 1px solid #334155; }
+
+        /* --- TS 測角 (教學強化) --- */
+        .instruction-box { width: 100%; max-width: 400px; background: #1e293b; border-left: 5px solid #22c55e; padding: 15px; margin-bottom: 15px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .step-title { color: #22c55e; font-weight: bold; font-size: 16px; margin-bottom: 6px; display: block; }
+        .step-detail { color: #fff; font-size: 14px; line-height: 1.5; margin-bottom: 8px; display: block; }
+        .theory-note { background: rgba(59, 130, 246, 0.15); color: #93c5fd; padding: 8px; border-radius: 4px; font-size: 13px; border-left: 3px solid #3b82f6; margin-top: 5px; }
+        .highlight-text { color: #facc15; font-weight: bold; text-decoration: underline; }
+
+        /* 望遠鏡 */
+        .telescope-view {
+            width: 300px; height: 300px; margin: 0 auto 15px; border-radius: 50%;
+            border: 4px solid #334155; background: #87ceeb; overflow: hidden; position: relative;
+            box-shadow: inset 0 0 60px #000; transition: transform 0.2s; flex-shrink: 0;
+        }
+        .crosshair { position: absolute; inset: 0; pointer-events: none; z-index: 20; display: flex; align-items: center; justify-content: center; }
+        .hair-h { width: 100%; height: 2px; background: rgba(0,0,0,0.7); position: absolute; }
+        .hair-v { height: 100%; width: 2px; background: rgba(0,0,0,0.7); position: absolute; }
+        .center-dot { width: 6px; height: 6px; background: #ef4444; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 21; box-shadow: 0 0 2px #fff; }
+        
+        .target-wrapper { position: absolute; width: 0; height: 0; left: 50%; top: 50%; pointer-events: none; }
+        .target-obj { position: absolute; bottom: 0; width: 60px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; transform: translateX(-50%); }
+        .pole { width: 6px; height: 100px; background: repeating-linear-gradient(to bottom, #ef4444 0, #ef4444 20px, #ffffff 20px, #ffffff 40px); border: 1px solid #666; }
+        .prism-box { width: 40px; height: 40px; background: #f97316; border: 2px solid #1f2937; display: flex; align-items: center; justify-content: center; margin-bottom: -2px; }
+        .prism-glass { width: 28px; height: 28px; background: #111; border-radius: 50%; border: 2px solid #fff; position: relative; display:flex; align-items:center; justify-content:center; }
+        .prism-center { width: 4px; height: 4px; background: white; border-radius: 50%; }
+
+        /* 控制區 */
+        .controls-container { width: 100%; max-width: 400px; }
+        .auto-aim-btn { width: 100%; background: #eab308; color: black; font-weight: bold; padding: 12px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 3px 0 #ca8a04; transition: 0.1s; display: flex; justify-content: center; align-items: center; gap: 5px; }
+        .auto-aim-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #ca8a04; }
+
+        .knobs-area { display: flex; gap: 15px; background: #1e293b; padding: 12px; border-radius: 12px; margin-bottom: 15px; }
+        .knob-grp { flex: 1; display: flex; flex-direction: column; align-items: center; }
+        .knob-label { font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: bold; }
+        .btn-grp { display: flex; gap: 10px; }
+        .arr-btn { width: 50px; height: 50px; background: #3b82f6; color: white; border-radius: 10px; font-size: 24px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 0 #1d4ed8; user-select: none; }
+        .arr-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #1d4ed8; }
+
+        /* Leica 面板 */
+        .ts-face { background: #cbd5e1; padding: 15px; border-radius: 12px; border: 3px solid #475569; margin-bottom: 20px; }
+        .lcd { background: #fff; border: 2px solid #64748b; height: 160px; border-radius: 4px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; margin-bottom: 15px; }
+        .lcd-content { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: flex-end; padding-right: 15px; }
+        .soft-keys { display: grid; grid-template-columns: repeat(4, 1fr); background: #f1f5f9; border-top: 1px solid #cbd5e1; }
+        .sk { text-align: center; font-size: 12px; font-weight: bold; padding: 10px 0; border-right: 1px solid #e2e8f0; }
+        .sk:last-child { border: none; }
+        .sk.active { background: #22c55e; color: white; }
+
+        .hard-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
+        .hk { background: #1e293b; color: white; padding: 14px 0; border-radius: 6px; font-size: 14px; font-weight: bold; text-align: center; box-shadow: 0 4px 0 #0f172a; cursor: pointer; user-select: none; }
+        .hk:active { transform: translateY(3px); box-shadow: none; }
+        .hk.highlight { background: #22c55e; box-shadow: 0 0 15px #22c55e; border: 2px solid white; z-index: 10; animation: pulse 1s infinite; }
+        .control-row { display: flex; justify-content: space-between; gap: 15px; }
+        .hk.red { background: #ef4444; box-shadow: 0 4px 0 #991b1b; width: 100%; }
+        .hk.func { background: #64748b; box-shadow: 0 4px 0 #334155; width: 100%; }
+
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        /* 即時野帳表格 */
+        .field-book { width: 100%; max-width: 400px; border-collapse: collapse; margin-top: 20px; font-size: 13px; color: #fff; background: #1e293b; border-radius: 8px; overflow: hidden; }
+        .field-book th { background: #0f172a; padding: 10px; border-bottom: 2px solid #475569; text-align: left; }
+        .field-book td { padding: 10px; border-bottom: 1px solid #334155; }
+        .field-book tr.current { background: rgba(34, 197, 94, 0.1); }
+        .val-placeholder { color: #64748b; font-style: italic; }
+        .val-filled { color: #facc15; font-family: monospace; font-weight: bold; }
+
+        /* 算式區塊 */
+        .math-box { width: 100%; max-width: 400px; background: #1e293b; padding: 15px; border-radius: 12px; margin-top: 20px; border: 1px solid #4ade80; display: none; }
+        .math-title { color: #4ade80; font-weight: bold; margin-bottom: 10px; border-bottom: 1px dashed #4ade80; padding-bottom: 5px; }
+        .math-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; }
+
+        /* 通用 */
+        .slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; width: 100%; }
+        .lbl { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold; font-size: 14px; border: 2px solid rgba(255,255,255,0.5); }
+        input[type=range] { flex: 1; -webkit-appearance: none; background: transparent; height: 36px; }
+        input[type=range]::-webkit-slider-runnable-track { height: 8px; background: #475569; border-radius: 4px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 28px; width: 28px; border-radius: 50%; background: #fff; margin-top: -10px; border: 3px solid #cbd5e1; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: transform 0.1s; }
+        .btn-green { width: 100%; padding: 12px; background: #22c55e; color: white; font-weight: bold; border-radius: 8px; text-align: center; box-shadow: 0 3px 0 #15803d; cursor: pointer; margin-top: 10px; }
+        .btn-green:active { transform: translateY(2px); box-shadow: none; }
+    </style>
+</head>
+<body class="bg-slate-900">
+
+    <div class="nav-bar">
+        <div onclick="switchTab('sop')" class="nav-btn active" id="nav-sop">1. SOP</div>
+        <div onclick="switchTab('sim')" class="nav-btn" id="nav-sim">2. 整置</div>
+        <div onclick="switchTab('ts')" class="nav-btn" id="nav-ts">3. 測回法</div>
+    </div>
+
+    <div class="main-content">
+
+        <div id="view-sop" class="p-4 w-full flex flex-col items-center">
+            <h2 class="text-green-400 font-bold text-lg mb-4">架站步驟排序</h2>
+            <div class="sop-grid">
+                <div><h3 class="text-xs text-slate-400 mb-2">正確流程</h3><div id="sop-slots"></div></div>
+                <div><h3 class="text-xs text-slate-400 mb-2">卡片庫</h3><div id="sop-options"></div></div>
+            </div>
+            <button onclick="checkSop()" class="btn-green text-lg w-full max-w-[300px] mt-8">檢查答案 ✅</button>
+        </div>
+
+        <div id="view-sim" class="hidden w-full flex flex-col items-center pt-4 p-4">
+            <div id="sim-lock" class="fixed inset-0 bg-slate-900/95 z-50 flex flex-col items-center justify-center text-center p-4">
+                <div class="text-5xl mb-4">🔒</div>
+                <p class="text-white mb-6 font-bold">請先完成 SOP 排序</p>
+                <button onclick="switchTab('sop')" class="px-6 py-3 bg-green-600 rounded-full text-white font-bold shadow-lg">前往 SOP</button>
+                <div class="mt-6 text-xs text-slate-500 underline cursor-pointer" onclick="forceUnlock()">[測試用] 強制解鎖</div>
+            </div>
+            
+            <h3 id="phase-title" class="text-xl text-white font-bold mb-4">粗平 (圓氣泡)</h3>
+            <div class="sim-container">
+                <div class="sim-canvas-wrap"><canvas id="simCanvas" width="300" height="300"></canvas></div>
+                <div class="sim-controls-box">
+                    <div id="ctrl-legs" class="hidden">
+                        <div class="slider-row"><div class="lbl" style="background:#facc15">A</div><input type="range" id="legA" oninput="userAction()"></div>
+                        <div class="slider-row"><div class="lbl" style="background:#4ade80">B</div><input type="range" id="legB" oninput="userAction()"></div>
+                        <div class="slider-row"><div class="lbl" style="background:#f87171">C</div><input type="range" id="legC" oninput="userAction()"></div>
+                        <button class="btn-green" onclick="toPhase('TUBE_X')">下一步：精平 ➤</button>
+                    </div>
+                    <div id="ctrl-tube-x" class="hidden text-center">
+                        <p class="text-yellow-400 font-bold mb-4">① X 軸：平行 A-B 連線</p>
+                        <div class="slider-row px-2"><span class="text-xs text-white">左</span><input type="range" id="screwAB" oninput="userAction()"><span class="text-xs text-white">右</span></div>
+                        <button class="btn-green" onclick="toPhase('TUBE_Y')">旋轉 90度 ➤</button>
+                    </div>
+                    <div id="ctrl-tube-y" class="hidden text-center">
+                        <p class="text-red-400 font-bold mb-4">② Y 軸：垂直方向 (C)</p>
+                        <div class="slider-row px-2"><span class="text-xs text-white">下</span><input type="range" id="screwC" oninput="userAction()"><span class="text-xs text-white">上</span></div>
+                        <button class="btn-green" onclick="toPhase('GROUND')">下一步：精確對心 ➤</button>
+                    </div>
+                    <div id="ctrl-shift" class="hidden text-center">
+                        <div class="text-5xl animate-bounce mb-4">👆</div>
+                        <p class="text-white font-bold mb-2">拖曳畫面紅點對準中心</p>
+                        <button class="btn-green" onclick="checkAll()">完成檢查 ✅</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-ts" class="hidden w-full flex flex-col items-center pt-4 p-2">
+            
+            <div class="instruction-box">
+                <span class="step-title" id="step-title">步驟 1 (正鏡):</span>
+                <span class="step-detail" id="step-detail">載入中...</span>
+                <div class="theory-note" id="theory-note">💡 提示載入中...</div>
+            </div>
+
+            <div class="telescope-view">
+                <div id="target-wrapper" class="target-wrapper">
+                    <div id="target-a" class="target-obj">
+                        <div class="pole"></div><div class="prism-box"><div class="prism-glass"><div class="prism-center"></div></div></div>
+                        <div class="bg-black/70 text-white text-[10px] px-1 mt-1 rounded">後視 A</div>
+                    </div>
+                    <div id="target-b" class="target-obj hidden">
+                        <div class="pole"></div><div class="prism-box"><div class="prism-glass"><div class="prism-center"></div></div></div>
+                        <div class="bg-black/70 text-white text-[10px] px-1 mt-1 rounded">前視 B</div>
+                    </div>
+                </div>
+                <div class="crosshair">
+                    <div class="hair-h"></div><div class="hair-v"></div><div class="center-dot"></div>
+                </div>
+            </div>
+
+            <div class="controls-container">
+                <button id="auto-aim-btn" class="auto-aim-btn" onclick="autoAim()">🔭 幫我找目標</button>
+                
+                <div class="knobs-area">
+                    <div class="knob-grp">
+                        <div class="knob-label">◀ 水平 Hz ▶</div>
+                        <div class="btn-grp">
+                            <button class="arr-btn" onmousedown="startSmartMove('H', -1)" onmouseup="stopSmartMove()" ontouchstart="startSmartMove('H', -1)" ontouchend="stopSmartMove()">◀</button>
+                            <button class="arr-btn" onmousedown="startSmartMove('H', 1)" onmouseup="stopSmartMove()" ontouchstart="startSmartMove('H', 1)" ontouchend="stopSmartMove()">▶</button>
+                        </div>
+                    </div>
+                    <div style="width:1px; background:#475569"></div>
+                    <div class="knob-grp">
+                        <div class="knob-label">▲ 垂直 V ▼</div>
+                        <div class="btn-grp">
+                            <button class="arr-btn" onmousedown="startSmartMove('V', 1)" onmouseup="stopSmartMove()" ontouchstart="startSmartMove('V', 1)" ontouchend="stopSmartMove()">▲</button>
+                            <button class="arr-btn" onmousedown="startSmartMove('V', -1)" onmouseup="stopSmartMove()" ontouchstart="startSmartMove('V', -1)" ontouchend="stopSmartMove()">▼</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ts-face">
+                    <div class="lcd">
+                        <div class="flex justify-between text-[10px] text-gray-500 p-1 border-b"><span>Std. Meas</span><span>[|||]</span></div>
+                        <div class="lcd-content">
+                            <div class="text-xs text-gray-500">V: <span id="lcd-v" class="font-mono text-slate-800">90°00'00"</span></div>
+                            <div class="text-xs text-gray-500 mt-1">Hz:</div>
+                            <div class="text-3xl font-bold text-slate-900 tracking-widest font-mono" id="lcd-hz">000°00'00"</div>
+                        </div>
+                        <div class="soft-keys">
+                            <div class="sk" id="lbl-f1">測存</div><div class="sk" id="lbl-f2">測距</div>
+                            <div class="sk" id="lbl-f3">記錄</div><div class="sk" id="lbl-f4" style="border:none">↓</div>
+                        </div>
+                    </div>
+                    <div class="hard-keys">
+                        <button class="hk" id="btn-f1" onclick="pressFkey(1)">F1</button>
+                        <button class="hk" id="btn-f2" onclick="pressFkey(2)">F2</button>
+                        <button class="hk" id="btn-f3" onclick="pressFkey(3)">F3</button>
+                        <button class="hk" id="btn-f4" onclick="pressFkey(4)">F4</button>
+                    </div>
+                    <div class="control-row">
+                        <button class="hk func" id="btn-func" onclick="doTransit()">Fnc (倒鏡)</button>
+                        <button class="hk red" onclick="startSurvey()">Esc (重置)</button>
+                    </div>
+                </div>
+            </div>
+
+            <table class="field-book">
+                <thead>
+                    <tr><th>步驟</th><th>目標</th><th>水平角讀數</th></tr>
+                </thead>
+                <tbody>
+                    <tr id="row-1"><td>1.正鏡</td><td>後視 A</td><td id="val-1" class="val-placeholder">--</td></tr>
+                    <tr id="row-2"><td>2.正鏡</td><td>前視 B</td><td id="val-2" class="val-placeholder">--</td></tr>
+                    <tr id="row-4"><td>3.倒鏡</td><td>前視 B</td><td id="val-4" class="val-placeholder">--</td></tr>
+                    <tr id="row-5"><td>4.倒鏡</td><td>後視 A</td><td id="val-5" class="val-placeholder">--</td></tr>
+                </tbody>
+            </table>
+
+            <div id="math-result" class="math-box"></div>
+        </div>
+    </div>
+
+    <script>
+        let isSopPassed = false;
+        let softKeyPage = 1;
+
+        function switchTab(tab){
+            document.querySelectorAll('[id^="view-"]').forEach(el=>el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+            document.getElementById('view-'+tab).classList.remove('hidden');
+            document.getElementById('nav-'+tab).classList.add('active');
+            if(tab==='sim'){
+                if(isSopPassed) { document.getElementById('sim-lock').style.display = 'none'; }
+                const cvs=document.getElementById('simCanvas'); cvs.width=300; cvs.height=300; initPhysics();
+            }
+            if(tab==='ts'){ startSurvey(); }
+        }
+
+        // --- SOP ---
+        const sopData = [
+            { t: "架設儀器", d: "拉高腳架至胸口，張開架設，鎖緊儀器與腳架" },
+            { t: "粗略定心", d: "搬動整組腳架，讓雷射/光學求心器大致對準地面點" },
+            { t: "踩實腳架", d: "用力將三隻腳踩入土中 (關鍵步驟，否則會跑掉)" },
+            { t: "粗定平 (圓)", d: "伸縮三支腳架的長度，讓圓氣泡居中" },
+            { t: "精定平 (長)", d: "調整腳螺旋，讓長氣泡在 X/Y 軸都居中" },
+            { t: "精確定心", d: "鬆開中心螺絲，平移機身對準，再鎖緊" },
+            { t: "反覆檢查", d: "平移後水平可能跑掉，需回到精定平再次檢查" }
+        ];
+        let sopSlots=Array(7).fill(null); let sopPool=[...sopData].sort(()=>Math.random()-0.5); let selIdx=-1;
+        function initSop(){
+            const sEl=document.getElementById('sop-slots'); sEl.innerHTML=''; const oEl=document.getElementById('sop-options'); oEl.innerHTML='';
+            sopSlots.forEach((item,i)=>{
+                let d=document.createElement('div'); d.className=`sop-slot ${item?'filled':''}`;
+                if(item) d.innerHTML=`<div><span class="sop-title">${item.t}</span><span class="sop-desc">${item.d}</span></div>`;
+                else d.innerHTML=`<span class="text-slate-500 text-sm font-bold w-full text-center">流程 ${i+1}</span>`;
+                d.onclick=()=>{if(selIdx!==-1){if(sopSlots[i])sopPool.push(sopSlots[i]); sopSlots[i]=sopPool[selIdx]; sopPool[selIdx]=null; selIdx=-1; initSop();}else if(sopSlots[i]){sopPool.push(sopSlots[i]); sopSlots[i]=null; initSop();}}; sEl.appendChild(d);
+            });
+            sopPool.forEach((item,i)=>{
+                if(!item)return; let d=document.createElement('div'); d.className=`sop-option ${selIdx===i?'selected':''}`; 
+                d.innerHTML=`<span class="sop-title">${item.t}</span><span class="sop-desc">${item.d}</span>`;
+                d.onclick=()=>{selIdx=(selIdx===i)?-1:i; initSop();}; oEl.appendChild(d);
+            });
+        }
+        function checkSop(){ 
+            if(sopSlots.every((v,i)=>v&&v.t===sopData[i].t)){ isSopPassed=true; alert("🎉 正確！解鎖儀器！"); document.getElementById('sim-lock').style.display='none'; switchTab('sim'); } 
+            else { alert("❌ 順序有誤！"); } 
+        }
+        function forceUnlock(){ isSopPassed=true; document.getElementById('sim-lock').style.display='none'; switchTab('sim'); }
+        initSop();
+
+        // --- Sim Engine ---
+        const canvas=document.getElementById('simCanvas'); const ctx=canvas.getContext('2d'); const CX=150, CY=150;
+        let phase='ROUGH', tiltX=0, tiltY=0, posX=0, posY=0, renderX=0, renderY=0, velX=0, velY=0, simRunning=false;
+        function initPhysics(){
+            tiltX=(Math.random()-0.5)*150; tiltY=(Math.random()-0.5)*150; renderX=tiltX; renderY=tiltY;
+            posX=(Math.random()-0.5)*80; posY=(Math.random()-0.5)*80;
+            ['legA','legB','legC'].forEach(id=>document.getElementById(id).value=Math.random()*100);
+            document.getElementById('screwAB').value=50; document.getElementById('screwC').value=50;
+            phase='ROUGH'; updateUI(); if(!simRunning){simRunning=true; requestAnimationFrame(simLoop);}
+        }
+        function resetSim(){phase='ROUGH'; initPhysics();}
+        function userAction(){
+            let lA=parseInt(document.getElementById('legA').value), lB=parseInt(document.getElementById('legB').value), lC=parseInt(document.getElementById('legC').value);
+            let sAB=parseInt(document.getElementById('screwAB').value), sC=parseInt(document.getElementById('screwC').value);
+            tiltX=(lB-lA)*1.5 + (sAB-50)*0.5; tiltY=((lA+lB)/2-lC)*1.5 + (sC-50)*0.5;
+        }
+        function toPhase(p){phase=p; updateUI();}
+        function checkAll(){
+            let bErr=Math.sqrt(renderX**2+renderY**2); let cErr=Math.sqrt(posX**2+posY**2);
+            if(bErr<3 && cErr<3){alert("🎉 完美！前往測角"); switchTab('ts');}
+            else if(cErr<3 && bErr>=3){alert("⚠️ 紅點準了，但氣泡歪了！\n自動返回修正氣泡。"); toPhase('TUBE_X');}
+            else{alert("❌ 還沒調好喔！");}
+        }
+        function updateUI(){
+            ['ctrl-legs','ctrl-tube-x','ctrl-tube-y','ctrl-shift'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+            document.getElementById('phase-title').innerText=phase==='ROUGH'?"粗平 (圓氣泡)":phase.includes('TUBE')?"精平 (長氣泡)":"精確對心";
+            if(phase==='ROUGH')document.getElementById('ctrl-legs').classList.remove('hidden');
+            else if(phase==='TUBE_X')document.getElementById('ctrl-tube-x').classList.remove('hidden');
+            else if(phase==='TUBE_Y')document.getElementById('ctrl-tube-y').classList.remove('hidden');
+            else document.getElementById('ctrl-shift').classList.remove('hidden');
+        }
+        let isDrag=false; canvas.addEventListener('mousedown',()=>isDrag=true); window.addEventListener('mouseup',()=>isDrag=false);
+        canvas.addEventListener('mousemove',e=>{if(isDrag && phase==='GROUND'){posX-=e.movementX*0.5; posY-=e.movementY*0.5; tiltX+=(Math.random()-0.5)*8; tiltY+=(Math.random()-0.5)*8;}});
+        canvas.addEventListener('touchstart',e=>{isDrag=true; e.preventDefault();}); window.addEventListener('touchend',()=>isDrag=false);
+        canvas.addEventListener('touchmove',e=>{if(isDrag && phase==='GROUND'){let t=e.touches[0]; posX-=t.movementX*0.5; posY-=t.movementY*0.5; tiltX+=(Math.random()-0.5)*8; tiltY+=(Math.random()-0.5)*8;}});
+        
+        function simLoop(){
+            if(document.getElementById('view-sim').classList.contains('hidden')){simRunning=false; return;}
+            let ax=(tiltX-renderX)*0.1; let ay=(tiltY-renderY)*0.1; velX+=ax; velY+=ay; velX*=0.85; velY*=0.85; renderX+=velX; renderY+=velY;
+            posX+=(Math.random()-0.5)*0.1; posY+=(Math.random()-0.5)*0.1;
+            ctx.fillStyle="#1e293b"; ctx.fillRect(0,0,300,300); ctx.beginPath(); ctx.arc(CX,CY,145,0,Math.PI*2); ctx.fillStyle=phase==='GROUND'?"#fff":"#0f172a"; ctx.fill(); ctx.strokeStyle="#475569"; ctx.lineWidth=6; ctx.stroke();
+            if(phase==='ROUGH'){
+                ctx.beginPath(); ctx.moveTo(CX,CY-90); ctx.lineTo(CX-80,CY+50); ctx.lineTo(CX+80,CY+50); ctx.closePath(); ctx.strokeStyle="rgba(255,255,255,0.2)"; ctx.lineWidth=2; ctx.stroke();
+                ctx.font="bold 16px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillStyle="#f87171"; ctx.fillText("C", CX, CY-105); ctx.fillStyle="#facc15"; ctx.fillText("A", CX-95, CY+60); ctx.fillStyle="#4ade80"; ctx.fillText("B", CX+95, CY+60);
+                ctx.beginPath(); ctx.arc(CX,CY,70,0,Math.PI*2); ctx.fillStyle="rgba(255,255,255,0.1)"; ctx.fill(); ctx.stroke();
+                ctx.beginPath(); ctx.arc(CX,CY,12,0,Math.PI*2); ctx.strokeStyle="#fff"; ctx.lineWidth=2; ctx.stroke();
+                let bx=renderX*1.5, by=renderY*1.5; let d=Math.sqrt(bx*bx+by*by); if(d>60){bx*=60/d; by*=60/d;} ctx.beginPath(); ctx.arc(CX+bx,CY+by,16,0,Math.PI*2); ctx.fillStyle="#4ade80"; ctx.fill();
+            }else if(phase.includes('TUBE')){
+                ctx.save(); ctx.translate(CX,CY); if(phase==='TUBE_Y') ctx.rotate(Math.PI/2);
+                ctx.fillStyle="#cbd5e1"; ctx.roundRect(-110,-25,220,50,5); ctx.fill(); ctx.strokeStyle="#000"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-15,-25); ctx.lineTo(-15,25); ctx.moveTo(15,-25); ctx.lineTo(15,25); ctx.stroke();
+                let val=phase==='TUBE_X'?renderX:renderY; let bx=val*15; if(bx>90)bx=90; if(bx<-90)bx=-90; ctx.fillStyle="rgba(74,222,128,0.9)"; ctx.roundRect(bx-20,-18,40,36,8); ctx.fill(); ctx.restore();
+            }else{
+                ctx.strokeStyle="#000"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(CX,0); ctx.lineTo(CX,300); ctx.moveTo(0,CY); ctx.lineTo(300,CY); ctx.stroke();
+                ctx.fillStyle="#ef4444"; ctx.beginPath(); ctx.arc(CX+posX,CY+posY,5,0,Math.PI*2); ctx.fill();
+            }
+            requestAnimationFrame(simLoop);
+        }
+
+        // --- TS Logic ---
+        let angBS=0, angFS=0, tsState=0, camHz=0, camV=90, targetA={h:0,v:90}, targetB={h:0,v:85}, isFaceLeft=true, moveInt, currentStep=0;
+        let recData = {L_BS:null, L_FS:null, R_FS:null, R_BS:null};
+
+        function startSurvey() {
+            targetA={h:0,v:90}; targetB={h:60+Math.random()*100, v:88+Math.random()*4}; camHz=Math.random()*360; camV=80+Math.random()*20;
+            tsState=1; isFaceLeft=true; recData={L_BS:null,L_FS:null,R_FS:null,R_BS:null}; currentStep=1;
+            
+            // Clear Table
+            for(let i of [1,2,4,5]) document.getElementById(`val-${i}`).innerHTML = "--";
+            document.getElementById(`val-${i}`).className = "val-placeholder";
+            
+            updateSoftKeys(); updateSurveyView();
+        }
+        
+        function autoAim() {
+            let t = null;
+            if(currentStep===1 || currentStep===5) t=targetA;
+            else if(currentStep===2 || currentStep===4) t=targetB;
+            
+            if(t) {
+                let offset = isFaceLeft ? 0 : 180;
+                camHz = (t.h + offset) % 360; 
+                camV = isFaceLeft ? t.v : 360 - t.v;
+                updateSurveyView();
+            } else if (currentStep===3) {
+                alert("現在不需要找目標！\n請按 [Fnc] 按鈕進行縱轉(翻面)。");
+            }
+        }
+
+        function startSmartMove(axis, dir) {
+            if(axis==='H'){camHz+=dir*0.01;}else{camV+=dir*0.01;} updateSurveyView(); 
+            if(moveInt) clearInterval(moveInt);
+            let speed = 0.05;
+            moveInt = setTimeout(() => {
+                moveInt = setInterval(() => {
+                    speed *= 1.1; if(speed>2)speed=2;
+                    if(axis==='H'){camHz+=dir*speed; if(camHz>=360)camHz-=360; if(camHz<0)camHz+=360;} else{camV+=dir*speed;}
+                    updateSurveyView();
+                }, 30);
+            }, 300);
+        }
+        function stopSmartMove() { clearTimeout(moveInt); clearInterval(moveInt); moveInt=null; }
+        
+        function doTransit(){ 
+            if(currentStep===3) { isFaceLeft=!isFaceLeft; camHz=(camHz+180)%360; camV=360-camV; currentStep=4; updateSurveyView(); }
+            else { alert("只有在「步驟 3」才需要縱轉喔！"); }
+        }
+        
+        function updateSoftKeys() {
+            const f1=document.getElementById('lbl-f1'); const f2=document.getElementById('lbl-f2'); 
+            const f3=document.getElementById('lbl-f3'); const f4=document.getElementById('lbl-f4');
+            if(softKeyPage === 1) { f1.innerText="測存"; f2.innerText="測距"; f3.innerText="記錄"; f4.innerText="↓"; } 
+            else { f1.innerText="設角"; f2.innerText="0SET"; f3.innerText="保留"; f4.innerText="↓"; }
+        }
+
+        function updateTable(step, val) {
+            let cell = document.getElementById(`val-${step}`);
+            if(cell) {
+                cell.innerText = toDMS(val);
+                cell.className = "val-filled";
+                cell.parentElement.classList.add("current");
+                // Remove highlight from prev
+                if(step>1) document.getElementById(`val-${step-1}`)?.parentElement.classList.remove("current");
+            }
+        }
+
+        function updateSurveyView() {
+            const scale=30; 
+            let distA_Normal = getDiff(camHz, targetA.h); let distA_Invert = getDiff(camHz, (targetA.h + 180) % 360);
+            let daH = Math.abs(distA_Normal) < Math.abs(distA_Invert) ? distA_Normal : distA_Invert;
+            let daV = Math.abs(distA_Normal) < Math.abs(distA_Invert) ? targetA.v - camV : (360 - targetA.v) - camV;
+
+            let distB_Normal = getDiff(camHz, targetB.h); let distB_Invert = getDiff(camHz, (targetB.h + 180) % 360);
+            let dbH = Math.abs(distB_Normal) < Math.abs(distB_Invert) ? distB_Normal : distB_Invert;
+            let dbV = Math.abs(distB_Normal) < Math.abs(distB_Invert) ? targetB.v - camV : (360 - targetB.v) - camV;
+
+            let tA = document.getElementById('target-a'); let tB = document.getElementById('target-b');
+            tA.style.transform = `translate(${Math.round(daH*scale)}px, ${Math.round(28 + daV*scale)}px) translateX(-50%)`;
+            tB.style.transform = `translate(${Math.round(dbH*scale)}px, ${Math.round(28 + dbV*scale)}px) translateX(-50%)`;
+            
+            let distA = Math.sqrt(daH*daH + daV*daV); tA.style.opacity = Math.max(0, 1 - distA/5); tA.classList.toggle('hidden', distA > 5);
+            let distB = Math.sqrt(dbH*dbH + dbV*dbV); tB.style.opacity = Math.max(0, 1 - distB/5); tB.classList.toggle('hidden', distB > 5);
+
+            let aimA = distA < 0.005; let aimB = distB < 0.005;
+
+            document.getElementById('lcd-hz').innerText = toDMS(camHz); document.getElementById('lcd-v').innerText = toDMS(camV);
+
+            const title = document.getElementById('step-title'); const detail = document.getElementById('step-detail');
+            const theory = document.getElementById('theory-note');
+            const aimBtn = document.getElementById('auto-aim-btn');
+            
+            document.querySelectorAll('.hk, .sk').forEach(el=>el.classList.remove('highlight', 'active'));
+
+            if(currentStep===1 || currentStep===5) aimBtn.innerText = "🔭 帶我去找 [後視 A]";
+            else if(currentStep===2 || currentStep===4) aimBtn.innerText = "🔭 帶我去找 [前視 B]";
+            else if(currentStep===3) aimBtn.innerText = "⛔ 暫停導航 (請翻面)";
+            else aimBtn.innerText = "🎉 任務完成";
+
+            // --- V54 Instructional Text ---
+            if(currentStep===1) {
+                title.innerText = "步驟 1 (正鏡):";
+                theory.innerText = "💡 原理：測量需要一個「基準方向」。通常我們選一個已知的後視點(A)，把它設為 0 度，這樣測出來的角度才有意義。";
+                if(!aimA) { detail.innerHTML = "請照準 [後視 A]。"; } 
+                else if(softKeyPage === 1) { detail.innerHTML = "<span class='highlight-text'>✅ 已照準！</span> 請按 F4 (↓) 翻頁。"; document.getElementById('lbl-f4').classList.add('active'); document.getElementById('btn-f4').classList.add('highlight'); }
+                else { detail.innerHTML = "請按 F1 (設角) 歸零。"; document.getElementById('lbl-f1').classList.add('active'); document.getElementById('btn-f1').classList.add('highlight'); }
+            } else if(currentStep===2) {
+                title.innerText = "步驟 2 (正鏡):";
+                theory.innerText = "💡 原理：現在 0 度已經定好了，轉動儀器去找目標(B)，儀器顯示的角度就是「正鏡水平角」。";
+                if(softKeyPage === 2) { detail.innerHTML = "歸零完成！請按 F4 (↓) 返回第一頁。"; document.getElementById('lbl-f4').classList.add('active'); document.getElementById('btn-f4').classList.add('highlight'); return; }
+                if(!aimB) detail.innerHTML = "請照準 [前視 B]。";
+                else { detail.innerHTML = "<span class='highlight-text'>✅ 已照準！</span> 請按 F1 (測存)。"; document.getElementById('lbl-f1').classList.add('active'); document.getElementById('btn-f1').classList.add('highlight'); }
+            } else if(currentStep===3) {
+                title.innerText = "步驟 3 (翻面):"; 
+                theory.innerText = "💡 原理：儀器內部可能有構造誤差(視準軸誤差)。「倒鏡」就是把儀器翻過來再測一次，這樣誤差的方向會相反，平均後就能抵銷。";
+                detail.innerHTML = "請按 [Fnc] 縱轉儀器。"; document.getElementById('btn-func').classList.add('highlight');
+            } else if(currentStep===4) {
+                title.innerText = "步驟 4 (倒鏡):";
+                theory.innerText = "💡 原理：保持倒鏡狀態，重新測量目標(B)。理論上讀數會跟正鏡差 180 度。";
+                if(!aimB) detail.innerHTML = "請照準 [前視 B]。";
+                else { detail.innerHTML = "<span class='highlight-text'>✅ 已照準！</span> 請按 F1 (測存) 記錄。"; document.getElementById('lbl-f1').classList.add('active'); document.getElementById('btn-f1').classList.add('highlight'); }
+            } else if(currentStep===5) {
+                title.innerText = "步驟 5 (倒鏡):";
+                theory.innerText = "💡 原理：最後回到起點(A)檢查。如果讀數不是 180 度(或 0 度)，代表儀器在過程中跑掉了(閉合差)。";
+                if(!aimA) detail.innerHTML = "請轉回 [後視 A]。";
+                else { detail.innerHTML = "<span class='highlight-text'>✅ 已照準！</span> 請按 F1 (測存) 結束。"; document.getElementById('lbl-f1').classList.add('active'); document.getElementById('btn-f1').classList.add('highlight'); }
+            } else {
+                title.innerText = "🎉 恭喜完成！"; detail.innerText = "測回結束，請往下滑查看詳解。"; theory.style.display='none';
+            }
+        }
+
+        function pressFkey(k){
+            if(k===4) { softKeyPage = softKeyPage===1?2:1; updateSoftKeys(); updateSurveyView(); return; }
+            
+            // SetHz Logic
+            if(currentStep===1 && softKeyPage===2 && (k===1)) { 
+                if(confirm("確定歸零 (SetHz=0)?")) { 
+                    let off=camHz; targetA.h-=off; targetB.h-=off; camHz=0; recData.L_BS=0; 
+                    updateTable(1, 0); // Update Table immediately
+                    currentStep=2; softKeyPage=1; updateSoftKeys(); updateSurveyView(); 
+                }
+                return;
+            }
+            
+            // Wrong Page Warning
+            if(currentStep > 1 && softKeyPage === 2 && k <= 3) {
+                alert("⚠️ 請按 F4 (↓) 切換回第一頁才能使用測存/測距/記錄功能！");
+                return;
+            }
+
+            // Measure Logic (Data Lock Fix)
+            if(k===1 && softKeyPage===1) { // F1 ALL
+                let val = camHz; 
+                if(currentStep===2) {
+                    if(val === 0) { alert("⚠️ 角度為 0！請先照準 B 點！"); return; }
+                    recData.L_FS=val; updateTable(2, val); currentStep=3; updateSurveyView();
+                } else if(currentStep===4) {
+                    recData.R_FS=val; updateTable(4, val); currentStep=5; updateSurveyView();
+                } else if(currentStep===5) {
+                    recData.R_BS=val; updateTable(5, val); currentStep=6; showReport(); updateSurveyView();
+                }
+            }
+        }
+
+        function getDiff(a,b){let d=b-a; while(d>180)d-=360; while(d<-180)d+=360; return d;}
+        function toDMS(v){if(v<0)v+=360; let d=Math.floor(v), m=Math.floor((v-d)*60), s=Math.floor(((v-d)*60-m)*60); return `${d}°${String(m).padStart(2,'0')}'${String(s).padStart(2,'0')}"`;}
+        
+        function showReport() {
+            let div = document.getElementById('math-result'); div.style.display = 'block';
+            let angL = recData.L_FS;
+            let angR = recData.R_FS - recData.R_BS; if(angR<0)angR+=360;
+            let final = (angL+angR)/2;
+            
+            div.innerHTML = `
+                <div class="math-title">詳細計算過程</div>
+                <div class="math-row"><span>正鏡角 (前視 - 後視)：</span><span>${toDMS(angL)} - 0° = ${toDMS(angL)}</span></div>
+                <div class="math-row"><span>倒鏡角 (前視 - 後視)：</span><span>${toDMS(recData.R_FS)} - ${toDMS(recData.R_BS)} = ${toDMS(angR)}</span></div>
+                <hr style="border-color:#475569; margin:8px 0;">
+                <div class="math-row" style="color:#fff; font-weight:bold; font-size:15px;">
+                    <span>最或是值 (平均)：</span><span>(${toDMS(angL)} + ${toDMS(angR)}) / 2 = ${toDMS(final)}</span>
+                </div>
+            `;
+            setTimeout(() => div.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+        }
+    </script>
+</body>
+</html>
