@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>全站儀特訓 V69.0 (成績評定版)</title>
+    <title>全站儀特訓 V74.0 (影音圖書館版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
@@ -77,11 +77,13 @@
         .center-dot { width: 6px; height: 6px; background: #ef4444; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 21; box-shadow: 0 0 2px #fff; }
         
         .target-wrapper { position: absolute; width: 0; height: 0; left: 50%; top: 50%; pointer-events: none; }
-        .target-obj { position: absolute; bottom: 0; width: 60px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; transform: translateX(-50%); }
-        .pole { width: 6px; height: 100px; background: repeating-linear-gradient(to bottom, #ef4444 0, #ef4444 20px, #ffffff 20px, #ffffff 40px); border: 1px solid #666; }
-        .prism-box { width: 40px; height: 40px; background: #f97316; border: 2px solid #1f2937; display: flex; align-items: center; justify-content: center; margin-bottom: -2px; }
-        .prism-glass { width: 28px; height: 28px; background: #111; border-radius: 50%; border: 2px solid #fff; position: relative; display:flex; align-items:center; justify-content:center; }
-        .prism-center { width: 4px; height: 4px; background: white; border-radius: 50%; }
+        .target-obj { position: absolute; width: 100px; height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; transform: translateX(-50%); }
+        
+        /* 特大號稜鏡與桿子 */
+        .pole { width: 10px; height: 150px; background: repeating-linear-gradient(to bottom, #ef4444 0, #ef4444 20px, #ffffff 20px, #ffffff 40px); border: 1px solid #666; }
+        .prism-box { width: 70px; height: 70px; background: #f97316; border: 3px solid #1f2937; display: flex; align-items: center; justify-content: center; margin-bottom: -2px; z-index: 2; }
+        .prism-glass { width: 50px; height: 50px; background: #111; border-radius: 50%; border: 3px solid #fff; position: relative; display:flex; align-items:center; justify-content:center; }
+        .prism-center { width: 8px; height: 8px; background: white; border-radius: 50%; }
 
         /* 控制面板 */
         .controls-container { width: 100%; max-width: 400px; }
@@ -151,6 +153,14 @@
         .btn-green { width: 100%; padding: 12px; background: #22c55e; color: white; font-weight: bold; border-radius: 8px; text-align: center; box-shadow: 0 3px 0 #15803d; cursor: pointer; margin-top: 10px; }
         .btn-green:active { transform: translateY(2px); box-shadow: none; }
         /* 移除原本的 .slider-desc，因為已經用不到 */
+
+        /* V74.0 新增：影片清單樣式 */
+        .video-card { display: flex; align-items: center; background: #1e293b; padding: 12px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #475569; cursor: pointer; transition: 0.2s; text-decoration: none; color: #e2e8f0; }
+        .video-card:hover { background: #334155; transform: translateX(5px); border-color: #22c55e; }
+        .video-icon { width: 40px; height: 40px; background: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0; color: white; font-weight: bold; font-size: 12px; }
+        .video-info { flex: 1; }
+        .video-title { font-weight: bold; display: block; margin-bottom: 2px; }
+        .video-note { font-size: 12px; color: #94a3b8; }
     </style>
 </head>
 <body class="bg-slate-900">
@@ -159,6 +169,7 @@
         <div onclick="switchTab('sop')" class="nav-btn active" id="nav-sop">1. SOP</div>
         <div onclick="switchTab('sim')" class="nav-btn" id="nav-sim">2. 整置</div>
         <div onclick="switchTab('ts')" class="nav-btn" id="nav-ts">3. 測回法</div>
+        <div onclick="switchTab('video')" class="nav-btn" id="nav-video">4. 影片</div>
     </div>
 
     <div class="main-content">
@@ -172,6 +183,78 @@
                 <div><h3 class="text-xs text-slate-400 mb-2">卡片庫</h3><div id="sop-options"></div></div>
             </div>
             <button onclick="checkSop()" class="btn-green text-lg w-full max-w-[300px] mt-8">檢查答案 ✅</button>
+        </div>
+
+        <div id="view-video" class="hidden w-full flex flex-col items-center p-4">
+            <h2 class="text-white text-2xl font-bold mb-6 border-l-4 border-green-500 pl-4 w-full max-w-[600px]">
+                參考影片圖書館
+            </h2>
+            <div class="w-full max-w-[600px]">
+                
+                <a href="https://youtu.be/eORANDbNtMI?si=FtEHg4recyXE1eXT" target="_blank" class="video-card">
+                    <div class="video-icon">YT</div>
+                    <div class="video-info">
+                        <span class="video-title">新北地政-測量助理考什麼?</span>
+                        <span class="video-note">了解考試重點與流程</span>
+                    </div>
+                    <span class="text-slate-400">➤</span>
+                </a>
+
+                <a href="https://youtu.be/vJGic12snGw?si=FoPbp59RulI_Rs6q" target="_blank" class="video-card">
+                    <div class="video-icon">YT</div>
+                    <div class="video-info">
+                        <span class="video-title">經緯儀架設方法</span>
+                        <span class="video-note">口訣：心心平平心</span>
+                    </div>
+                    <span class="text-slate-400">➤</span>
+                </a>
+
+                <a href="https://youtu.be/7Ib-rSUIApQ?si=4m-A-Plicn3xSqH4" target="_blank" class="video-card">
+                    <div class="video-icon">YT</div>
+                    <div class="video-info">
+                        <span class="video-title">經緯儀定心定平方法</span>
+                        <span class="video-note">基礎操作詳解</span>
+                    </div>
+                    <span class="text-slate-400">➤</span>
+                </a>
+
+                <a href="https://youtu.be/3qS5AcfDuS4?si=iXhMPZ7H5mNuUkiX" target="_blank" class="video-card">
+                    <div class="video-icon">YT</div>
+                    <div class="video-info">
+                        <span class="video-title">經緯儀定心定平教學</span>
+                        <span class="video-note">進階技巧說明</span>
+                    </div>
+                    <span class="text-slate-400">➤</span>
+                </a>
+
+                <a href="https://youtu.be/FmIGwKy_4X0?si=O9ziS7nbYupr48Gr" target="_blank" class="video-card">
+                    <div class="video-icon">YT</div>
+                    <div class="video-info">
+                        <span class="video-title">經緯儀定心定平操作影片</span>
+                        <span class="video-note">實際操作流程展示</span>
+                    </div>
+                    <span class="text-slate-400">➤</span>
+                </a>
+
+                <a href="https://youtube.com/shorts/ApYIgvSv4Cw?si=J2CTwNhTc2vvvoPW" target="_blank" class="video-card">
+                    <div class="video-icon">Short</div>
+                    <div class="video-info">
+                        <span class="video-title">Leica TS07 開啟雷射</span>
+                        <span class="video-note">定心定平後如何開啟雷射求心</span>
+                    </div>
+                    <span class="text-slate-400">➤</span>
+                </a>
+
+                <a href="https://youtu.be/HZgIZgkZ_Q8?si=3UL4fSOJwCNJMr_Z" target="_blank" class="video-card">
+                    <div class="video-icon">YT</div>
+                    <div class="video-info">
+                        <span class="video-title">大稜鏡架設方法</span>
+                        <span class="video-note">求心器型號經緯儀也可參考</span>
+                    </div>
+                    <span class="text-slate-400">➤</span>
+                </a>
+
+            </div>
         </div>
 
         <div id="view-sim" class="hidden w-full flex flex-col items-center pt-4 p-4">
@@ -260,14 +343,14 @@
                     <div id="world-layer" class="blur-layer">
                         <div id="target-wrapper" class="target-wrapper">
                             <div id="target-a" class="target-obj">
+                                <div class="bg-black/70 text-white text-[10px] px-2 py-1 mb-1 rounded">後視 A</div>
                                 <div class="prism-box"><div class="prism-glass"><div class="prism-center"></div></div></div>
                                 <div class="pole"></div>
-                                <div class="bg-black/70 text-white text-[10px] px-1 mt-1 rounded">後視 A</div>
                             </div>
                             <div id="target-b" class="target-obj hidden">
+                                <div class="bg-black/70 text-white text-[10px] px-2 py-1 mb-1 rounded">前視 B</div>
                                 <div class="prism-box"><div class="prism-glass"><div class="prism-center"></div></div></div>
                                 <div class="pole"></div>
-                                <div class="bg-black/70 text-white text-[10px] px-1 mt-1 rounded">前視 B</div>
                             </div>
                         </div>
                     </div>
@@ -348,7 +431,6 @@
         let softKeyPage = 1;
         let isTransiting = false;
         
-        // V68.0 新增：儲存「隱形地形」造成的目標腳架長度
         let targetLegA = 50, targetLegB = 50, targetLegC = 50;
 
         function switchTab(tab){
@@ -378,11 +460,9 @@
         function initSop(){
             const sEl=document.getElementById('sop-slots'); sEl.innerHTML=''; const oEl=document.getElementById('sop-options'); oEl.innerHTML='';
             
-            // 渲染左邊的插槽 (Slots)
             sopSlots.forEach((item,i)=>{
                 let d=document.createElement('div'); d.className=`sop-slot ${item?'filled':''}`;
                 if(item) {
-                    // 這裡修改了：使用 <div> 換行，並加上樣式
                     d.innerHTML=`<div class="text-left w-full"><div class="text-yellow-400 font-bold mb-1">【${item.t}】</div><div class="text-white text-sm">${item.d}</div></div>`;
                 } else {
                     d.innerHTML=`<span class="text-slate-500 text-sm font-bold w-full text-center">流程 ${i+1}</span>`;
@@ -390,10 +470,8 @@
                 d.onclick=()=>{if(selIdx!==-1){if(sopSlots[i])sopPool.push(sopSlots[i]); sopSlots[i]=sopPool[selIdx]; sopPool[selIdx]=null; selIdx=-1; initSop();}else if(sopSlots[i]){sopPool.push(sopSlots[i]); sopSlots[i]=null; initSop();}}; sEl.appendChild(d);
             });
 
-            // 渲染右邊的卡片庫 (Options)
             sopPool.forEach((item,i)=>{
                 if(!item)return; let d=document.createElement('div'); d.className=`sop-option ${selIdx===i?'selected':''}`; 
-                // 這裡修改了：使用 <div> 換行，並加上樣式
                 d.innerHTML=`<div class="text-yellow-400 font-bold mb-1">【${item.t}】</div><div class="text-gray-300 text-sm">${item.d}</div>`;
                 d.onclick=()=>{selIdx=(selIdx===i)?-1:i; initSop();}; oEl.appendChild(d);
             });
@@ -406,29 +484,19 @@
         const canvas=document.getElementById('simCanvas'); const ctx=canvas.getContext('2d'); const CX=150, CY=150;
         let phase='ROUGH', tiltX=0, tiltY=0, posX=0, posY=0, renderX=0, renderY=0, velX=0, velY=0, simRunning=false;
         
-        // V68.0 修改：生成崎嶇地形，並打亂腳架
         function initPhysics(){ 
-            // 1. 隨機決定「平」的時候，三支腳應該多長 (模擬地形高低差)
-            // 範圍設在 20~80，確保滑桿有空間可以調整到位
             targetLegA = 20 + Math.random() * 60;
             targetLegB = 20 + Math.random() * 60;
             targetLegC = 20 + Math.random() * 60;
 
-            // 2. 隨機設定滑桿的「目前位置」 (模擬剛架好時的亂七八糟狀態)
-            // 故意設成隨機 0~100，讓它跟正確答案不一樣
             document.getElementById('legA').value = Math.floor(Math.random() * 100);
             document.getElementById('legB').value = Math.floor(Math.random() * 100);
             document.getElementById('legC').value = Math.floor(Math.random() * 100);
 
-            // 3. 計算傾斜量 (會引用新的 userAction 邏輯)
-            // 直接呼叫 userAction() 來計算，這樣邏輯最統一
             userAction();
-
-            // 4. 設定物理參數 (氣泡位置 = 剛算出來的傾斜)
+            
             renderX = tiltX; 
             renderY = tiltY; 
-            
-            // 5. 還是保留一點點隨機擾動 (模擬風吹或不穩)
             posX=(Math.random()-0.5)*5; 
             posY=(Math.random()-0.5)*5; 
             
@@ -439,7 +507,6 @@
 
         function resetSim(){phase='ROUGH'; initPhysics();}
         
-        // V68.0 修改：傾斜量是根據「目前長度」與「地形需求長度」的差距來計算
         function userAction(){
             let lA=parseInt(document.getElementById('legA').value);
             let lB=parseInt(document.getElementById('legB').value);
@@ -448,13 +515,10 @@
             let sAB=parseInt(document.getElementById('screwAB').value);
             let sC=parseInt(document.getElementById('screwC').value);
             
-            // 計算偏差值：(目前長度 - 該地形需要的長度)
             let diffA = lA - targetLegA;
             let diffB = lB - targetLegB;
             let diffC = lC - targetLegC;
 
-            // 公式改成用 diff (偏差值) 來計算
-            // 係數 3.0 維持高靈敏度
             tiltX = (diffB - diffA) * 3.0 + (sAB - 50) * 0.5; 
             tiltY = ((diffA + diffB) / 2 - diffC) * 3.0 + (sC - 50) * 0.5;
         }
@@ -510,7 +574,6 @@
             updateSoftKeys(); updateSurveyView();
         }
         
-        // V55 Smooth Auto Aim with Random Error (V61.0)
         function startAutoAim() {
             if(isTransiting) return;
             let t = null;
@@ -522,7 +585,6 @@
                 let targetHz = (t.h + offset) % 360; 
                 let targetV = isFaceLeft ? t.v : 360 - t.v;
                 
-                // --- V61.0: Add Random Error (Simulation of human inaccuracy) ---
                 let errorHz = (Math.random() - 0.5) * 0.005; 
                 let errorV = (Math.random() - 0.5) * 0.005;
 
@@ -571,7 +633,12 @@
 
         function startSmartMove(axis, dir) {
             if(isTransiting) return;
-            if(axis==='H'){camHz+=dir*0.01;}else{camV+=dir*0.01;} updateSurveyView(); 
+            if(axis==='H'){
+                camHz += dir * 0.002;
+            } else {
+                camV += dir * 0.002;
+            } 
+            updateSurveyView(); 
             if(moveInt) clearInterval(moveInt);
             let speed = 0.05;
             moveInt = setTimeout(() => {
@@ -591,7 +658,6 @@
             else { f1.innerText="設角"; f2.innerText="0SET"; f3.innerText="保留"; f4.innerText="↓"; }
         }
 
-        // V64.0 - Removed "Aligned" Text Prompts + V65.0 Removed "Blurry" Warning
         function updateSurveyView() {
             const scale=30; 
             let distA_Normal = getDiff(camHz, targetA.h); let distA_Invert = getDiff(camHz, (targetA.h + 180) % 360);
@@ -604,14 +670,12 @@
 
             let tA = document.getElementById('target-a'); let tB = document.getElementById('target-b');
             
-            // 冠穎校正參數：0/136px >10/145
-            tA.style.transform = `translate(${Math.round(15 + daH*scale)}px, ${Math.round(155 + daV*scale)}px) translateX(-50%)`;
-            tB.style.transform = `translate(${Math.round(15 + dbH*scale)}px, ${Math.round(155 + dbV*scale)}px) translateX(-50%)`;
+            tA.style.transform = `translate(${Math.round(daH*scale)}px, ${Math.round(-60 + daV*scale)}px) translateX(-50%)`;
+            tB.style.transform = `translate(${Math.round(dbH*scale)}px, ${Math.round(-60 + dbV*scale)}px) translateX(-50%)`;
             
             let distA = Math.sqrt(daH*daH + daV*daV); tA.style.opacity = Math.max(0, 1 - distA/5); tA.classList.toggle('hidden', distA > 5);
             let distB = Math.sqrt(dbH*dbH + dbV*dbV); tB.style.opacity = Math.max(0, 1 - distB/5); tB.classList.toggle('hidden', distB > 5);
             
-            // --- V60 全方位雷達邏輯 ---
             let isTargetA = (distA < distB);
             let dH = isTargetA ? daH : dbH;
             let dV = isTargetA ? daV : dbV;
@@ -623,7 +687,6 @@
             arrowEl.style.transform = `rotate(${arrowAngle}deg)`;
             arrowEl.style.opacity = (totalDist < 20 && totalDist > 2) ? 1 : 0;
 
-            // V64.0: 純粹內部判斷用，不顯示給使用者
             let aimA = distA < 0.05; 
             let aimB = distB < 0.05;
 
@@ -644,9 +707,6 @@
 
             let focused = Math.abs(50 - parseInt(document.getElementById('focus-slider').value)) < 10;
             
-            // V65.0: 移除模糊警告提示
-
-            // V64.0 修改：只顯示操作指令，完全不提示是否「已照準」
             if(currentStep===1) {
                 document.getElementById('step-title').innerText = "步驟 1 (正鏡):";
                 theory.innerText = "💡 原理：後視點(A)是基準，必須設為 0 度，測量才有意義。";
@@ -711,17 +771,14 @@
         function getDiff(a,b){let d=b-a; while(d>180)d-=360; while(d<-180)d+=360; return d;}
         function toDMS(v){if(v<0)v+=360; let d=Math.floor(v), m=Math.floor((v-d)*60), s=Math.floor(((v-d)*60-m)*60); return `${d}°${String(m).padStart(2,'0')}'${String(s).padStart(2,'0')}"`;}
         
-        // V69.0 升級：新增「成績評定」系統 (計算測回差並判定合格/不合格)
         function showReport() {
             let div = document.getElementById('calc-result'); div.style.display = 'block';
             
-            // 取得各項數值
             let val_L_BS = recData.L_BS !== null ? recData.L_BS : 0;
             let val_L_FS = recData.L_FS !== null ? recData.L_FS : 0;
             let val_R_FS = recData.R_FS !== null ? recData.R_FS : 0;
             let val_R_BS = recData.R_BS !== null ? recData.R_BS : 0;
 
-            // 計算角度
             let angL = val_L_FS - val_L_BS;
             if(angL < 0) angL += 360;
 
@@ -730,16 +787,11 @@
 
             let final = (angL + angR) / 2;
 
-            // --- V69.0: 計算測回差 (Double Centering Difference) ---
-            // 也就是正鏡角與倒鏡角的差值
             let diff = Math.abs(angL - angR);
-            // 處理跨越 360 度的邊界狀況 (例如 0度 vs 359度)
             if(diff > 180) diff = 360 - diff;
             
-            // 轉換成秒數方便比較
             let diffSec = Math.round(diff * 3600);
             
-            // 設定合格標準：40秒
             let isPass = diffSec <= 40;
             let statusBadge = isPass 
                 ? `<span class="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold">🏆 合格</span>` 
