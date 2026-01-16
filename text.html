@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>全站儀特訓 V77.0 (iOS完美適配版)</title>
+    <title>全站儀特訓 V81.0 (絲滑氣泡版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        /* V77.0 修改：全域禁止選取文字與長按選單，徹底解決長按按鈕選到字的問題 */
+        /* 全域禁止選取文字與長按選單 */
         * {
             -webkit-user-select: none; /* Safari */
             -moz-user-select: none; /* Firefox */
@@ -17,7 +17,7 @@
             -webkit-tap-highlight-color: transparent; /* 移除點擊時的高亮藍框 */
         }
         
-        /* 唯獨讓「報告區」可以選取，方便妳想複製成績 */
+        /* 唯獨讓「報告區」可以選取 */
         #calc-result, #calc-result * {
             -webkit-user-select: text;
             user-select: text;
@@ -25,33 +25,32 @@
 
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #0f172a; color: #e2e8f0; touch-action: pan-y; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* V77.0 修改：導航列改為 Fixed (固定)，永遠釘在螢幕最上方 */
+        /* 導航列 Fixed */
         .nav-bar { 
-            position: fixed; /* 關鍵：固定定位 */
+            position: fixed; 
             top: 0; left: 0; right: 0;
             display: flex; 
             background: #1e293b; 
             border-bottom: 1px solid #334155; 
-            z-index: 100; /* 層級拉高，蓋過所有內容 */
-            padding-top: env(safe-area-inset-top); /* 避開瀏海 */
+            z-index: 100; 
+            padding-top: env(safe-area-inset-top); 
             padding-left: env(safe-area-inset-left);
             padding-right: env(safe-area-inset-right);
             height: auto;
-            min-height: 50px; /* 確保有基本高度 */
+            min-height: 50px; 
         }
         .nav-btn { flex: 1; padding: 12px; text-align: center; color: #64748b; border-bottom: 3px solid transparent; transition: 0.2s; cursor: pointer; font-weight: bold; font-size: 14px; }
         .nav-btn.active { color: #22c55e; border-bottom-color: #22c55e; background: rgba(34, 197, 94, 0.1); }
 
-        /* V77.0 修改：主內容區加上 margin-top，避免被固定的導航列擋住 */
+        /* 主內容區 */
         .main-content { 
             flex: 1 1 auto; 
             overflow-y: auto; 
-            margin-top: 60px; /* 預留給導航列的空間 */
-            padding: 20px 10px 120px 10px; /* 上 右 下(加大) 左 */
+            margin-top: 60px; 
+            padding: 20px 10px 120px 10px; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            /* 讓捲動更滑順 */
             -webkit-overflow-scrolling: touch; 
         }
 
@@ -124,7 +123,6 @@
         .knob-label { font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: bold; }
         .btn-grp { display: flex; gap: 10px; }
         
-        /* 按鈕樣式 (含防選取) */
         .arr-btn { 
             width: 50px; height: 50px; 
             background: #3b82f6; color: white; 
@@ -132,8 +130,6 @@
             font-size: 24px; font-weight: bold; 
             display: flex; align-items: center; justify-content: center; 
             box-shadow: 0 3px 0 #1d4ed8; 
-            
-            /* 強制禁止選取，解決長按問題 */
             user-select: none;
             -webkit-user-select: none;
         }
@@ -312,7 +308,10 @@
                 <div class="sim-canvas-wrap"><canvas id="simCanvas" width="300" height="300"></canvas></div>
                 <div class="sim-controls-box">
                     <div id="ctrl-legs" class="hidden">
-                        <p class="text-center text-slate-400 text-sm mb-4">調整腳架長度，將氣泡趕入黑圈</p>
+                        <p class="text-center text-slate-400 text-sm mb-2">調整腳架長度，將氣泡趕入黑圈</p>
+                        <div class="text-xs text-yellow-400 text-center mb-4 border border-yellow-500/30 bg-yellow-500/10 p-2 rounded">
+                            💡 口訣：氣泡在哪邊，那邊就比較「高」<br>(要把那隻腳「縮短」)
+                        </div>
                         <div class="slider-row">
                             <div class="lbl" style="background:#facc15">A</div>
                             <span class="text-xs text-slate-400 w-6 text-right mr-1">縮</span>
@@ -561,8 +560,9 @@
             let diffB = lB - targetLegB;
             let diffC = lC - targetLegC;
 
+            // V80.0 修正：Y軸氣泡邏輯 (sC - 50 改為 -(sC - 50))
             tiltX = (diffB - diffA) * 3.0 + (sAB - 50) * 0.5; 
-            tiltY = ((diffA + diffB) / 2 - diffC) * 3.0 + (sC - 50) * 0.5;
+            tiltY = ((diffA + diffB) / 2 - diffC) * 3.0 - (sC - 50) * 0.5;
         }
 
         function toPhase(p){phase=p; updateUI();}
@@ -575,13 +575,72 @@
             else if(phase==='TUBE_Y')document.getElementById('ctrl-tube-y').classList.remove('hidden');
             else document.getElementById('ctrl-shift').classList.remove('hidden');
         }
-        let isDrag=false; canvas.addEventListener('mousedown',()=>isDrag=true); window.addEventListener('mouseup',()=>isDrag=false);
-        canvas.addEventListener('mousemove',e=>{if(isDrag && phase==='GROUND'){posX-=e.movementX*0.5; posY-=e.movementY*0.5; tiltX+=(Math.random()-0.5)*8; tiltY+=(Math.random()-0.5)*8;}});
-        canvas.addEventListener('touchstart',e=>{isDrag=true; e.preventDefault();}); window.addEventListener('touchend',()=>isDrag=false);
-        canvas.addEventListener('touchmove',e=>{if(isDrag && phase==='GROUND'){let t=e.touches[0]; posX-=t.movementX*0.5; posY-=t.movementY*0.5; tiltX+=(Math.random()-0.5)*8; tiltY+=(Math.random()-0.5)*8;}});
+        
+        // V78.0 修正：手動計算 Touch 移動量 (解決紅點消失問題)
+        let isDrag=false; 
+        let lastTouchX = 0;
+        let lastTouchY = 0;
+
+        canvas.addEventListener('mousedown',()=>isDrag=true); 
+        window.addEventListener('mouseup',()=>isDrag=false);
+        canvas.addEventListener('mousemove',e=>{
+            if(isDrag && phase==='GROUND'){
+                posX-=e.movementX*0.5; 
+                posY-=e.movementY*0.5; 
+                tiltX+=(Math.random()-0.5)*8; 
+                tiltY+=(Math.random()-0.5)*8;
+            }
+        });
+        
+        canvas.addEventListener('touchstart',e=>{
+            isDrag=true; 
+            e.preventDefault(); // 防止畫面跟著捲動
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
+        }); 
+        
+        window.addEventListener('touchend',()=>isDrag=false);
+        
+        canvas.addEventListener('touchmove',e=>{
+            if(isDrag && phase==='GROUND'){
+                e.preventDefault(); 
+                let t=e.touches[0]; 
+                
+                // 手動計算 delta
+                let deltaX = t.clientX - lastTouchX;
+                let deltaY = t.clientY - lastTouchY;
+                
+                // 更新位置
+                posX -= deltaX * 0.5; 
+                posY -= deltaY * 0.5; 
+                
+                // 更新 lastTouch
+                lastTouchX = t.clientX;
+                lastTouchY = t.clientY;
+
+                tiltX+=(Math.random()-0.5)*8; 
+                tiltY+=(Math.random()-0.5)*8;
+            }
+        });
+
         function simLoop(){
             if(document.getElementById('view-sim').classList.contains('hidden')){simRunning=false; return;}
-            let ax=(tiltX-renderX)*0.1; let ay=(tiltY-renderY)*0.1; velX+=ax; velY+=ay; velX*=0.85; velY*=0.85; renderX+=velX; renderY+=velY;
+            
+            // V81.0 物理引擎優化：增加黏滯感 (Viscosity)
+            // 彈力 (Tension) 降低：讓氣泡追蹤目標變慢，產生「拖曳感」
+            let ax = (tiltX - renderX) * 0.03; 
+            // 摩擦 (Friction) 增加：讓氣泡滑行距離變長，產生「古溜感」
+            let ay = (tiltY - renderY) * 0.03; 
+            
+            velX += ax; 
+            velY += ay; 
+            
+            velX *= 0.92; // 阻尼係數 (越高越滑)
+            velY *= 0.92; 
+            
+            renderX += velX; 
+            renderY += velY;
+            
             posX+=(Math.random()-0.5)*0.1; posY+=(Math.random()-0.5)*0.1;
             ctx.fillStyle="#1e293b"; ctx.fillRect(0,0,300,300); ctx.beginPath(); ctx.arc(CX,CY,145,0,Math.PI*2); ctx.fillStyle=phase==='GROUND'?"#fff":"#0f172a"; ctx.fill(); ctx.strokeStyle="#475569"; ctx.lineWidth=6; ctx.stroke();
             if(phase==='ROUGH'){
@@ -627,6 +686,7 @@
                 let targetHz = (t.h + offset) % 360; 
                 let targetV = isFaceLeft ? t.v : 360 - t.v;
                 
+                // --- V61.0: Add Random Error (Simulation of human inaccuracy) ---
                 let errorHz = (Math.random() - 0.5) * 0.005; 
                 let errorV = (Math.random() - 0.5) * 0.005;
 
@@ -673,15 +733,22 @@
             } else { alert("只有在「步驟 3」才需要縱轉喔！"); }
         }
 
+        // V70.0 修改：降低單次點擊的移動量，模擬「微動螺旋」
         function startSmartMove(axis, dir) {
             if(isTransiting) return;
+            
+            // 🔥 這裡改了：把 0.01 改成 0.002 (約 7秒)
+            // 這樣妳就可以進行「微米級」的操作，不再手滑爆掉！
             if(axis==='H'){
                 camHz += dir * 0.002;
             } else {
                 camV += dir * 0.002;
             } 
             updateSurveyView(); 
+            
             if(moveInt) clearInterval(moveInt);
+            
+            // 下面是長按加速的邏輯 (維持不變，讓妳還能快速轉動)
             let speed = 0.05;
             moveInt = setTimeout(() => {
                 moveInt = setInterval(() => {
@@ -700,6 +767,7 @@
             else { f1.innerText="設角"; f2.innerText="0SET"; f3.innerText="保留"; f4.innerText="↓"; }
         }
 
+        // V64.0 - Removed "Aligned" Text Prompts + V65.0 Removed "Blurry" Warning
         function updateSurveyView() {
             const scale=30; 
             let distA_Normal = getDiff(camHz, targetA.h); let distA_Invert = getDiff(camHz, (targetA.h + 180) % 360);
@@ -712,12 +780,14 @@
 
             let tA = document.getElementById('target-a'); let tB = document.getElementById('target-b');
             
-            tA.style.transform = `translate(${Math.round(daH*scale)}px, ${Math.round(-60 + daV*scale)}px) translateX(-50%)`;
-            tB.style.transform = `translate(${Math.round(dbH*scale)}px, ${Math.round(-60 + dbV*scale)}px) translateX(-50%)`;
+            // V73.0 修正：垂直偏移量改為 -60px (往上拉)，解決「瞄準即消失」的BUG
+            tA.style.transform = `translate(${Math.round(daH*scale)}px, ${Math.round(-61.5 + daV*scale)}px) translateX(-50%)`;
+            tB.style.transform = `translate(${Math.round(dbH*scale)}px, ${Math.round(-61.5 + dbV*scale)}px) translateX(-50%)`;
             
             let distA = Math.sqrt(daH*daH + daV*daV); tA.style.opacity = Math.max(0, 1 - distA/5); tA.classList.toggle('hidden', distA > 5);
             let distB = Math.sqrt(dbH*dbH + dbV*dbV); tB.style.opacity = Math.max(0, 1 - distB/5); tB.classList.toggle('hidden', distB > 5);
             
+            // --- V60 全方位雷達邏輯 ---
             let isTargetA = (distA < distB);
             let dH = isTargetA ? daH : dbH;
             let dV = isTargetA ? daV : dbV;
@@ -729,6 +799,7 @@
             arrowEl.style.transform = `rotate(${arrowAngle}deg)`;
             arrowEl.style.opacity = (totalDist < 20 && totalDist > 2) ? 1 : 0;
 
+            // V64.0: 純粹內部判斷用，不顯示給使用者
             let aimA = distA < 0.05; 
             let aimB = distB < 0.05;
 
@@ -749,6 +820,9 @@
 
             let focused = Math.abs(50 - parseInt(document.getElementById('focus-slider').value)) < 10;
             
+            // V65.0: 移除模糊警告提示
+
+            // V64.0 修改：只顯示操作指令，完全不提示是否「已照準」
             if(currentStep===1) {
                 document.getElementById('step-title').innerText = "步驟 1 (正鏡):";
                 theory.innerText = "💡 原理：後視點(A)是基準，必須設為 0 度，測量才有意義。";
@@ -813,14 +887,17 @@
         function getDiff(a,b){let d=b-a; while(d>180)d-=360; while(d<-180)d+=360; return d;}
         function toDMS(v){if(v<0)v+=360; let d=Math.floor(v), m=Math.floor((v-d)*60), s=Math.floor(((v-d)*60-m)*60); return `${d}°${String(m).padStart(2,'0')}'${String(s).padStart(2,'0')}"`;}
         
+        // V67.1 修正版：修復度數符號顯示亂碼的問題
         function showReport() {
             let div = document.getElementById('calc-result'); div.style.display = 'block';
             
+            // 取得各項數值 (使用 0 作為預設值，避免 null 報錯)
             let val_L_BS = recData.L_BS !== null ? recData.L_BS : 0;
             let val_L_FS = recData.L_FS !== null ? recData.L_FS : 0;
             let val_R_FS = recData.R_FS !== null ? recData.R_FS : 0;
             let val_R_BS = recData.R_BS !== null ? recData.R_BS : 0;
 
+            // 計算角度 (處理負值加360)
             let angL = val_L_FS - val_L_BS;
             if(angL < 0) angL += 360;
 
@@ -829,11 +906,16 @@
 
             let final = (angL + angR) / 2;
 
+            // --- V69.0: 計算測回差 (Double Centering Difference) ---
+            // 也就是正鏡角與倒鏡角的差值
             let diff = Math.abs(angL - angR);
+            // 處理跨越 360 度的邊界狀況 (例如 0度 vs 359度)
             if(diff > 180) diff = 360 - diff;
             
+            // 轉換成秒數方便比較
             let diffSec = Math.round(diff * 3600);
             
+            // 設定合格標準：40秒
             let isPass = diffSec <= 40;
             let statusBadge = isPass 
                 ? `<span class="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold">🏆 合格</span>` 
