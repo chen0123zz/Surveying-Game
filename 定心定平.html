@@ -549,7 +549,7 @@
             
             // Compass Logic
             let closestH = (distA < distB) ? daH : dbH;
-            let arrowRot = Math.max(-90, Math.min(90, closestH * -1)); 
+            let arrowRot = Math.max(-90, Math.min(90, closestH));
             document.getElementById('compass-arrow').style.transform = `rotate(${arrowRot}deg)`;
             document.getElementById('compass-arrow').style.opacity = (Math.abs(closestH) < 20 && Math.abs(closestH) > 2) ? 1 : 0; 
 
@@ -639,3 +639,4 @@
     </script>
 </body>
 </html>
+
