@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>全站儀特訓 V58.0 (直觀拉桿版)</title>
+    <title>全站儀特訓 V61.0 (擬真誤差版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
@@ -260,11 +260,13 @@
                     <div id="world-layer" class="blur-layer">
                         <div id="target-wrapper" class="target-wrapper">
                             <div id="target-a" class="target-obj">
-                                <div class="pole"></div><div class="prism-box"><div class="prism-glass"><div class="prism-center"></div></div></div>
+                                <div class="prism-box"><div class="prism-glass"><div class="prism-center"></div></div></div>
+                                <div class="pole"></div>
                                 <div class="bg-black/70 text-white text-[10px] px-1 mt-1 rounded">後視 A</div>
                             </div>
                             <div id="target-b" class="target-obj hidden">
-                                <div class="pole"></div><div class="prism-box"><div class="prism-glass"><div class="prism-center"></div></div></div>
+                                <div class="prism-box"><div class="prism-glass"><div class="prism-center"></div></div></div>
+                                <div class="pole"></div>
                                 <div class="bg-black/70 text-white text-[10px] px-1 mt-1 rounded">前視 B</div>
                             </div>
                         </div>
@@ -296,8 +298,8 @@
                     <div class="knob-grp">
                         <div class="knob-label">▲ 垂直 V ▼</div>
                         <div class="btn-grp">
-                            <button class="arr-btn" onmousedown="startSmartMove('V', 1)" onmouseup="stopSmartMove()" ontouchstart="startSmartMove('V', 1)" ontouchend="stopSmartMove()">▲</button>
-                            <button class="arr-btn" onmousedown="startSmartMove('V', -1)" onmouseup="stopSmartMove()" ontouchstart="startSmartMove('V', -1)" ontouchend="stopSmartMove()">▼</button>
+                            <button class="arr-btn" onmousedown="startSmartMove('V', -1)" onmouseup="stopSmartMove()" ontouchstart="startSmartMove('V', -1)" ontouchend="stopSmartMove()">▲</button>
+                            <button class="arr-btn" onmousedown="startSmartMove('V', 1)" onmouseup="stopSmartMove()" ontouchstart="startSmartMove('V', 1)" ontouchend="stopSmartMove()">▼</button>
                         </div>
                     </div>
                 </div>
@@ -458,7 +460,7 @@
             updateSoftKeys(); updateSurveyView();
         }
         
-        // V55 Smooth Auto Aim
+        // V55 Smooth Auto Aim with Random Error (V61.0)
         function startAutoAim() {
             if(isTransiting) return;
             let t = null;
@@ -470,14 +472,25 @@
                 let targetHz = (t.h + offset) % 360; 
                 let targetV = isFaceLeft ? t.v : 360 - t.v;
                 
+                // --- V61.0: Add Random Error (Simulation of human inaccuracy) ---
+                let errorHz = (Math.random() - 0.5) * 0.005; 
+                let errorV = (Math.random() - 0.5) * 0.005;
+
+                let finalHz = targetHz + errorHz;
+                let finalV = targetV + errorV;
+                
                 let startHz = camHz; let startV = camV;
                 let steps = 20; let i = 0;
                 let interval = setInterval(() => {
                     i++;
-                    camHz = startHz + (targetHz - startHz) * (i/steps);
-                    camV = startV + (targetV - startV) * (i/steps);
+                    camHz = startHz + (finalHz - startHz) * (i/steps);
+                    camV = startV + (finalV - startV) * (i/steps);
                     updateSurveyView();
-                    if(i >= steps) { clearInterval(interval); camHz=targetHz; camV=targetV; updateSurveyView(); }
+                    if(i >= steps) { 
+                        clearInterval(interval); 
+                        camHz=finalHz; camV=finalV; 
+                        updateSurveyView(); 
+                    }
                 }, 20);
             } else if (currentStep===3) { alert("現在不需要找目標！\n請按 [Fnc] 按鈕進行縱轉。"); }
         }
@@ -540,20 +553,28 @@
 
             let tA = document.getElementById('target-a'); let tB = document.getElementById('target-b');
             
-            // 冠穎校正參數：36px
-            tA.style.transform = `translate(${Math.round(daH*scale)}px, ${Math.round(36 + daV*scale)}px) translateX(-50%)`;
-            tB.style.transform = `translate(${Math.round(dbH*scale)}px, ${Math.round(36 + dbV*scale)}px) translateX(-50%)`;
+            // 冠穎校正參數：136px
+            tA.style.transform = `translate(${Math.round(daH*scale)}px, ${Math.round(136 + daV*scale)}px) translateX(-50%)`;
+            tB.style.transform = `translate(${Math.round(dbH*scale)}px, ${Math.round(136 + dbV*scale)}px) translateX(-50%)`;
             
             let distA = Math.sqrt(daH*daH + daV*daV); tA.style.opacity = Math.max(0, 1 - distA/5); tA.classList.toggle('hidden', distA > 5);
             let distB = Math.sqrt(dbH*dbH + dbV*dbV); tB.style.opacity = Math.max(0, 1 - distB/5); tB.classList.toggle('hidden', distB > 5);
             
-            // Compass Logic
-            let closestH = (distA < distB) ? daH : dbH;
-            let arrowRot = Math.max(-90, Math.min(90, closestH));
-            document.getElementById('compass-arrow').style.transform = `rotate(${arrowRot}deg)`;
-            document.getElementById('compass-arrow').style.opacity = (Math.abs(closestH) < 20 && Math.abs(closestH) > 2) ? 1 : 0; 
+            // --- V60 全方位雷達邏輯 ---
+            let isTargetA = (distA < distB);
+            let dH = isTargetA ? daH : dbH;
+            let dV = isTargetA ? daV : dbV;
+            let totalDist = Math.sqrt(dH*dH + dV*dV);
 
-            let aimA = distA < 0.005; let aimB = distB < 0.005;
+            let arrowAngle = (Math.atan2(dV, dH) * 180 / Math.PI) + 90;
+
+            let arrowEl = document.getElementById('compass-arrow');
+            arrowEl.style.transform = `rotate(${arrowAngle}deg)`;
+            arrowEl.style.opacity = (totalDist < 20 && totalDist > 2) ? 1 : 0;
+
+            // --- V61.0: Relaxed Aim Check (0.05 instead of 0.005) ---
+            let aimA = distA < 0.05; 
+            let aimB = distB < 0.05;
 
             document.getElementById('lcd-hz').innerText = toDMS(camHz); document.getElementById('lcd-v').innerText = toDMS(camV);
 
@@ -639,4 +660,3 @@
     </script>
 </body>
 </html>
-
